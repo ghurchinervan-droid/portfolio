@@ -242,8 +242,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 }
 .logo3d__layer { position: absolute; inset: 0; }
 .logo3d__layer--base { position: relative; }   /* sizes the container */
-/* layered copies: no per-copy shadow/float (too heavy × 12); shade the depth layers */
-.logo3d img { animation: none; filter: brightness(0.62); }
+/* layered copies: no per-copy shadow/float; gentle shading so the depth reads
+   as one solid dark side rather than visible slices */
+.logo3d img { animation: none; filter: brightness(0.78); }
 .logo3d__layer--base img { filter: drop-shadow(0 18px 50px rgba(0,0,0,0.55)); }
 
 /* floating design-tool icons suspended around the logo */

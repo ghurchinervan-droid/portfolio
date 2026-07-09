@@ -625,8 +625,9 @@
       // build the volume: stacked copies of the logo along the Z axis
       var l3d = document.createElement("div");
       l3d.className = "logo3d";
-      var LAYERS = ljMQ.matches ? 8 : 12;
-      var GAP = ljMQ.matches ? 2.2 : 2;
+      // many tightly-packed layers -> reads as ONE solid piece when spinning
+      var LAYERS = ljMQ.matches ? 16 : 26;
+      var GAP = ljMQ.matches ? 0.9 : 0.7;
       for (var li = 0; li < LAYERS; li++) {
         var layer = document.createElement("div");
         var isBase = li === LAYERS - 1;   // front face
