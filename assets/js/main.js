@@ -616,6 +616,77 @@
     });
   }
 
+  /* ---------- 3D volumetric hero logo (drag to spin 360°) ---------- */
+  var heroBigLogo = document.getElementById("heroBigLogo");
+  var bgBlobsEl = document.getElementById("bgBlobs");
+  if (heroBigLogo) {
+    var srcImgs = Array.prototype.slice.call(heroBigLogo.querySelectorAll("img"));
+    if (srcImgs.length) {
+      // build the volume: stacked copies of the logo along the Z axis
+      var l3d = document.createElement("div");
+      l3d.className = "logo3d";
+      var LAYERS = ljMQ.matches ? 8 : 12;
+      var GAP = ljMQ.matches ? 2.2 : 2;
+      for (var li = 0; li < LAYERS; li++) {
+        var layer = document.createElement("div");
+        var isBase = li === LAYERS - 1;   // front face
+        layer.className = "logo3d__layer" + (isBase ? " logo3d__layer--base" : "");
+        layer.style.transform = "translateZ(" + ((li - (LAYERS - 1) / 2) * GAP).toFixed(1) + "px)";
+        for (var si = 0; si < srcImgs.length; si++) {
+          layer.appendChild(srcImgs[si].cloneNode(false));
+        }
+        l3d.appendChild(layer);
+      }
+      for (var ri = 0; ri < srcImgs.length; ri++) heroBigLogo.removeChild(srcImgs[ri]);
+      heroBigLogo.appendChild(l3d);
+
+      // free-orbit drag: horizontal drag spins (Y axis), vertical drag tilts (X axis)
+      var rx = 0, ry = 0, vx = 0, vy = 0;
+      var spinning = false, spx = 0, spy = 0, spinRaf = null;
+
+      function renderSpin() {
+        l3d.style.transform = "rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
+        // the red background field follows the spin direction
+        if (bgBlobsEl) {
+          bgBlobsEl.style.setProperty("--bgRot", (ry * 0.1).toFixed(2) + "deg");
+          bgBlobsEl.style.setProperty("--bgTilt", (rx * 0.5).toFixed(1) + "px");
+        }
+      }
+      function inertia() {
+        spinRaf = null;
+        if (spinning) return;
+        vx *= 0.94; vy *= 0.94;
+        if (Math.abs(vx) < 0.03 && Math.abs(vy) < 0.03) return;
+        ry += vx; rx -= vy;
+        renderSpin();
+        spinRaf = window.requestAnimationFrame(inertia);
+      }
+      l3d.addEventListener("pointerdown", function (e) {
+        spinning = true; spx = e.clientX; spy = e.clientY; vx = vy = 0;
+        heroBigLogo.classList.add("dragging");
+        if (l3d.setPointerCapture) l3d.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      });
+      l3d.addEventListener("pointermove", function (e) {
+        if (!spinning) return;
+        var dx = e.clientX - spx, dy = e.clientY - spy;
+        spx = e.clientX; spy = e.clientY;
+        ry += dx * 0.45;
+        rx -= dy * 0.45;
+        vx = dx * 0.45; vy = dy * 0.45;
+        renderSpin();
+      });
+      function endSpin() {
+        if (!spinning) return;
+        spinning = false;
+        heroBigLogo.classList.remove("dragging");
+        if (!spinRaf) spinRaf = window.requestAnimationFrame(inertia);
+      }
+      l3d.addEventListener("pointerup", endSpin);
+      l3d.addEventListener("pointercancel", endSpin);
+    }
+  }
+
   /* ---------- Theme toggle (dark <-> light) ---------- */
   var themeToggle = document.getElementById("themeToggle");
   if (themeToggle) {

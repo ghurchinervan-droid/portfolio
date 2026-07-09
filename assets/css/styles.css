@@ -69,7 +69,8 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 }
 .bg-field__blobs {
   position: absolute; inset: 0;
-  transform: translate3d(0, calc(var(--p, 0) * -80px), 0);
+  /* --bgRot/--bgTilt follow the 3D logo as it's dragged around */
+  transform: translate3d(0, calc(var(--p, 0) * -80px + var(--bgTilt, 0px)), 0) rotate(var(--bgRot, 0deg));
   will-change: transform;
 }
 /* soft radial blobs (gradient does the softening — no costly blur filter) */
@@ -228,6 +229,22 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   animation: floaty 7s ease-in-out infinite;
 }
 @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* ---- 3D volumetric, drag-to-spin logo ---- */
+.hero-bigLogo { perspective: 900px; }
+.hero-bigLogo.dragging { cursor: grabbing; }
+.logo3d {
+  position: relative; width: 100%;
+  transform-style: preserve-3d;
+  touch-action: none;           /* drag rotates instead of scrolling */
+  cursor: grab;
+  will-change: transform;
+}
+.logo3d__layer { position: absolute; inset: 0; }
+.logo3d__layer--base { position: relative; }   /* sizes the container */
+/* layered copies: no per-copy shadow/float (too heavy × 12); shade the depth layers */
+.logo3d img { animation: none; filter: brightness(0.62); }
+.logo3d__layer--base img { filter: drop-shadow(0 18px 50px rgba(0,0,0,0.55)); }
 
 /* floating design-tool icons suspended around the logo */
 .hero-tools {
