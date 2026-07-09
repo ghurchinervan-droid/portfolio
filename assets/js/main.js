@@ -20,6 +20,8 @@
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 
+  var resetLogoSpin = null;   // assigned by the 3D logo module below
+
   function updateHero(y) {
     if (!heroStage) return;
     var range = heroStage.offsetHeight - window.innerHeight;
@@ -75,6 +77,7 @@
     applyScroll();
   });
   function onScroll() {
+    if (resetLogoSpin) resetLogoSpin();   // scrolling straightens the 3D logo
     if (!ticking) {
       ticking = true;
       window.requestAnimationFrame(applyScroll);
@@ -625,9 +628,10 @@
       // build the volume: stacked copies of the logo along the Z axis
       var l3d = document.createElement("div");
       l3d.className = "logo3d";
-      // many tightly-packed layers -> reads as ONE solid piece when spinning
-      var LAYERS = ljMQ.matches ? 16 : 26;
-      var GAP = ljMQ.matches ? 0.9 : 0.7;
+      // sub-pixel layer gap -> the projected space between slices stays under
+      // one pixel at any angle, so the volume reads as ONE solid piece
+      var LAYERS = ljMQ.matches ? 24 : 40;
+      var GAP = 0.5;
       for (var li = 0; li < LAYERS; li++) {
         var layer = document.createElement("div");
         var isBase = li === LAYERS - 1;   // front face
@@ -685,6 +689,27 @@
       }
       l3d.addEventListener("pointerup", endSpin);
       l3d.addEventListener("pointercancel", endSpin);
+
+      // scrolling eases the logo back to its flat, original orientation
+      var resetRaf = null;
+      resetLogoSpin = function () {
+        if (spinning) return;
+        if (rx === 0 && ry === 0 && !spinRaf && !resetRaf) return;
+        vx = vy = 0;
+        if (spinRaf) { window.cancelAnimationFrame(spinRaf); spinRaf = null; }
+        // take the shortest path back to 0 (e.g. 350° unwinds forward, not 350° back)
+        rx = ((rx % 360) + 540) % 360 - 180;
+        ry = ((ry % 360) + 540) % 360 - 180;
+        if (resetRaf) return;
+        var step = function () {
+          resetRaf = null;
+          rx *= 0.8; ry *= 0.8;
+          if (Math.abs(rx) < 0.1 && Math.abs(ry) < 0.1) { rx = 0; ry = 0; renderSpin(); return; }
+          renderSpin();
+          resetRaf = window.requestAnimationFrame(step);
+        };
+        resetRaf = window.requestAnimationFrame(step);
+      };
     }
   }
 
