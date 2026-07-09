@@ -20,7 +20,7 @@
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 
-  var resetLogoSpin = null;   // assigned by the 3D logo module below
+  // the 3D logo module (logo3d.js) registers window.n9ResetLogoSpin
 
   function updateHero(y) {
     if (!heroStage) return;
@@ -77,7 +77,7 @@
     applyScroll();
   });
   function onScroll() {
-    if (resetLogoSpin) resetLogoSpin();   // scrolling straightens the 3D logo
+    if (window.n9ResetLogoSpin) window.n9ResetLogoSpin();   // scrolling straightens the 3D logo
     if (!ticking) {
       ticking = true;
       window.requestAnimationFrame(applyScroll);
@@ -617,100 +617,6 @@
     window.addEventListener("blur", function () {
       glow.classList.remove("is-on"); glowShown = false;
     });
-  }
-
-  /* ---------- 3D volumetric hero logo (drag to spin 360°) ---------- */
-  var heroBigLogo = document.getElementById("heroBigLogo");
-  var bgBlobsEl = document.getElementById("bgBlobs");
-  if (heroBigLogo) {
-    var srcImgs = Array.prototype.slice.call(heroBigLogo.querySelectorAll("img"));
-    if (srcImgs.length) {
-      // build the volume: stacked copies of the logo along the Z axis
-      var l3d = document.createElement("div");
-      l3d.className = "logo3d";
-      // sub-pixel layer gap -> the projected space between slices stays under
-      // one pixel at any angle, so the volume reads as ONE solid piece
-      var LAYERS = ljMQ.matches ? 24 : 40;
-      var GAP = 0.5;
-      for (var li = 0; li < LAYERS; li++) {
-        var layer = document.createElement("div");
-        var isBase = li === LAYERS - 1;   // front face
-        layer.className = "logo3d__layer" + (isBase ? " logo3d__layer--base" : "");
-        layer.style.transform = "translateZ(" + ((li - (LAYERS - 1) / 2) * GAP).toFixed(1) + "px)";
-        for (var si = 0; si < srcImgs.length; si++) {
-          layer.appendChild(srcImgs[si].cloneNode(false));
-        }
-        l3d.appendChild(layer);
-      }
-      for (var ri = 0; ri < srcImgs.length; ri++) heroBigLogo.removeChild(srcImgs[ri]);
-      heroBigLogo.appendChild(l3d);
-
-      // free-orbit drag: horizontal drag spins (Y axis), vertical drag tilts (X axis)
-      var rx = 0, ry = 0, vx = 0, vy = 0;
-      var spinning = false, spx = 0, spy = 0, spinRaf = null;
-
-      function renderSpin() {
-        l3d.style.transform = "rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
-        // the red background field follows the spin direction
-        if (bgBlobsEl) {
-          bgBlobsEl.style.setProperty("--bgRot", (ry * 0.1).toFixed(2) + "deg");
-          bgBlobsEl.style.setProperty("--bgTilt", (rx * 0.5).toFixed(1) + "px");
-        }
-      }
-      function inertia() {
-        spinRaf = null;
-        if (spinning) return;
-        vx *= 0.94; vy *= 0.94;
-        if (Math.abs(vx) < 0.03 && Math.abs(vy) < 0.03) return;
-        ry += vx; rx -= vy;
-        renderSpin();
-        spinRaf = window.requestAnimationFrame(inertia);
-      }
-      l3d.addEventListener("pointerdown", function (e) {
-        spinning = true; spx = e.clientX; spy = e.clientY; vx = vy = 0;
-        heroBigLogo.classList.add("dragging");
-        if (l3d.setPointerCapture) l3d.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      });
-      l3d.addEventListener("pointermove", function (e) {
-        if (!spinning) return;
-        var dx = e.clientX - spx, dy = e.clientY - spy;
-        spx = e.clientX; spy = e.clientY;
-        ry += dx * 0.45;
-        rx -= dy * 0.45;
-        vx = dx * 0.45; vy = dy * 0.45;
-        renderSpin();
-      });
-      function endSpin() {
-        if (!spinning) return;
-        spinning = false;
-        heroBigLogo.classList.remove("dragging");
-        if (!spinRaf) spinRaf = window.requestAnimationFrame(inertia);
-      }
-      l3d.addEventListener("pointerup", endSpin);
-      l3d.addEventListener("pointercancel", endSpin);
-
-      // scrolling eases the logo back to its flat, original orientation
-      var resetRaf = null;
-      resetLogoSpin = function () {
-        if (spinning) return;
-        if (rx === 0 && ry === 0 && !spinRaf && !resetRaf) return;
-        vx = vy = 0;
-        if (spinRaf) { window.cancelAnimationFrame(spinRaf); spinRaf = null; }
-        // take the shortest path back to 0 (e.g. 350° unwinds forward, not 350° back)
-        rx = ((rx % 360) + 540) % 360 - 180;
-        ry = ((ry % 360) + 540) % 360 - 180;
-        if (resetRaf) return;
-        var step = function () {
-          resetRaf = null;
-          rx *= 0.8; ry *= 0.8;
-          if (Math.abs(rx) < 0.1 && Math.abs(ry) < 0.1) { rx = 0; ry = 0; renderSpin(); return; }
-          renderSpin();
-          resetRaf = window.requestAnimationFrame(step);
-        };
-        resetRaf = window.requestAnimationFrame(step);
-      };
-    }
   }
 
   /* ---------- Theme toggle (dark <-> light) ---------- */
