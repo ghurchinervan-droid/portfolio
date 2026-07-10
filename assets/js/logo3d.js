@@ -28,12 +28,13 @@ function init() {
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
   camera.position.set(0, 0, 120);
 
-  // studio lighting — dialed low so the saturated Rhino colours read pure
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-  const key = new THREE.DirectionalLight(0xffffff, 0.85);
+  // studio lighting — soft & even to match the flat PNG feel (a bit lifted,
+  // not saturated to the point of over-pigment)
+  scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+  const key = new THREE.DirectionalLight(0xffffff, 0.75);
   key.position.set(55, 90, 140);
   scene.add(key);
-  const fill = new THREE.DirectionalLight(0xffffff, 0.4);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.5);
   fill.position.set(-70, -20, 90);
   scene.add(fill);
 

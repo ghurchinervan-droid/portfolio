@@ -241,6 +241,7 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   position: absolute; inset: 0; z-index: 1;
   touch-action: none;           /* drag rotates instead of scrolling */
   cursor: grab;
+  animation: floaty 7s ease-in-out infinite;   /* keeps the "suspended" hover */
 }
 /* once the 3D canvas is live, hide the flat fallback images
    (!important beats the theme-toggle .logo-light override) */
