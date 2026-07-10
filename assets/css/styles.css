@@ -214,6 +214,7 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   position: relative; z-index: 2;
   display: grid; place-items: center;
   width: clamp(220px, 34vw, 460px);
+  aspect-ratio: 1 / 1;   /* reserve a square slot so nothing collapses on load / theme swap */
   transform: translate3d(0, var(--introY, 0px), 0) scale(var(--introScale, 1));
   transform-origin: center center;
   will-change: transform;
@@ -224,7 +225,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   filter: blur(14px); pointer-events: none;
 }
 .hero-bigLogo img {
-  width: 100%; height: auto; position: relative; z-index: 1;
+  /* fills the square slot; kept as the fallback until the 3D canvas swaps in */
+  width: 100%; height: 100%; object-fit: contain;
+  position: absolute; inset: 0; z-index: 1;
   filter: drop-shadow(0 18px 50px rgba(0,0,0,0.55));
   animation: floaty 7s ease-in-out infinite;
 }
@@ -233,9 +236,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 /* ---- real 3D drag-to-spin logo (three.js canvas) ---- */
 .hero-bigLogo.dragging { cursor: grabbing; }
 .logo3d-canvas {
-  display: block; width: 100% !important; height: auto !important;
-  aspect-ratio: 1 / 1;
-  position: relative; z-index: 1;
+  display: block;
+  width: 100% !important; height: 100% !important;
+  position: absolute; inset: 0; z-index: 1;
   touch-action: none;           /* drag rotates instead of scrolling */
   cursor: grab;
 }

@@ -1,6 +1,6 @@
 # Rhino
 
-mtllib N9 white.mtl
+mtllib N9-white.mtl
 usemtl Material_1
 v -26.035533905029297 0 8.6785116195678711
 v 0 0 -17.357023239135742
