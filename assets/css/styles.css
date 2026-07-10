@@ -242,8 +242,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   touch-action: none;           /* drag rotates instead of scrolling */
   cursor: grab;
 }
-/* once the 3D canvas is live, hide the flat fallback images */
-.hero-bigLogo.has3d img { display: none; }
+/* once the 3D canvas is live, hide the flat fallback images
+   (!important beats the theme-toggle .logo-light override) */
+.hero-bigLogo.has3d img { display: none !important; }
 
 /* floating design-tool icons suspended around the logo */
 .hero-tools {

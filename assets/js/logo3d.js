@@ -28,16 +28,13 @@ function init() {
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
   camera.position.set(0, 0, 120);
 
-  // studio lighting — bright and clean so the Rhino diffuse colours read true
-  scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 1.6);
+  // studio lighting — dialed low so the saturated Rhino colours read pure
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const key = new THREE.DirectionalLight(0xffffff, 0.85);
   key.position.set(55, 90, 140);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.9);
-  rim.position.set(-90, -30, 60);
-  scene.add(rim);
-  const fill = new THREE.DirectionalLight(0xffffff, 0.6);
-  fill.position.set(-40, 40, 130);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.4);
+  fill.position.set(-70, -20, 90);
   scene.add(fill);
 
   // pose + rotation state — kept across model swaps (theme toggle)
@@ -64,13 +61,17 @@ function init() {
       .setPath("assets/models/")
       .load(name + ".mtl", (materials) => {
         materials.preload();
-        // upgrade Rhino's basic diffuse to a PBR-ish look so lighting reads well
-        Object.values(materials.materials).forEach((m) => {
-          if (m.color) {
-            m.metalness = 0.25;
-            m.roughness = 0.42;
-            m.side = THREE.DoubleSide;
-          }
+        // Rewrite each Rhino material to MeshStandardMaterial with its OWN Kd
+        // colour and NO specular tint — the default Ks=1,1,1 washes the red out.
+        Object.keys(materials.materials).forEach((name) => {
+          const src = materials.materials[name];
+          const std = new THREE.MeshStandardMaterial({
+            color: (src.color ? src.color.clone() : new THREE.Color(0xffffff)),
+            metalness: 0.05,
+            roughness: 0.55,
+            side: THREE.DoubleSide,
+          });
+          materials.materials[name] = std;
         });
         new OBJLoader()
           .setMaterials(materials)
