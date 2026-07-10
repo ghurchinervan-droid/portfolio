@@ -22,23 +22,29 @@ function init() {
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
   camera.position.set(0, 0, 120);
 
-  // lighting: soft ambient + white key + brand-red rim
-  scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-  const key = new THREE.DirectionalLight(0xffffff, 2.0);
-  key.position.set(60, 90, 130);
+  // lighting: soft ambient + white key (bright red highlights) + light rim
+  // (edge highlight) so the red volume shows clear form and depth
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 2.2);
+  key.position.set(55, 85, 130);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xe23a4b, 1.6);
-  rim.position.set(-90, -50, 70);
+  const rim = new THREE.DirectionalLight(0xffd0d6, 1.5);
+  rim.position.set(-95, -40, 60);
   scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xffffff, 0.5);
+  fill.position.set(-40, 30, 120);
+  scene.add(fill);
 
-  // theme-aware material (white body on dark theme, near-black on light)
+  // brand-coloured material — the logo's own red, in both themes
+  // (slightly deeper red on the light page so it still reads with contrast)
   const isLight = () => document.documentElement.getAttribute("data-theme") === "light";
+  const bodyColor = () => (isLight() ? 0xa5182a : 0xbf1e2e);
   const mat = new THREE.MeshStandardMaterial({
-    color: isLight() ? 0x1b1517 : 0xf4f1f1,
-    metalness: 0.3,
-    roughness: 0.38,
+    color: bodyColor(),
+    metalness: 0.35,
+    roughness: 0.34,
   });
-  new MutationObserver(() => { mat.color.set(isLight() ? 0x1b1517 : 0xf4f1f1); render(); })
+  new MutationObserver(() => { mat.color.set(bodyColor()); render(); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
   const group = new THREE.Group();
