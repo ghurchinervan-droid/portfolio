@@ -12,13 +12,31 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
 
-const host = document.getElementById("heroBigLogo");
-const bgBlobs = document.getElementById("bgBlobs");
-if (host) {
-  try { init(); } catch (e) { /* keep the <img> fallback */ }
+const ASSET_V = "20260630-38";   // shared cache-buster with the html
+
+function whenReady(cb) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", cb, { once: true });
+  } else { cb(); }
 }
 
-function init() {
+function webglSupported() {
+  try {
+    const c = document.createElement("canvas");
+    return !!(window.WebGLRenderingContext && (c.getContext("webgl2") || c.getContext("webgl")));
+  } catch (e) { return false; }
+}
+
+whenReady(() => {
+  const host = document.getElementById("heroBigLogo");
+  const bgBlobs = document.getElementById("bgBlobs");
+  if (!host || !webglSupported()) return;
+  try { init(host, bgBlobs); } catch (e) {
+    console.warn("[N9 3D] init failed:", e);
+  }
+});
+
+function init(host, bgBlobs) {
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -28,8 +46,7 @@ function init() {
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 600);
   camera.position.set(0, 0, 120);
 
-  // studio lighting — soft & even to match the flat PNG feel (a bit lifted,
-  // not saturated to the point of over-pigment)
+  // studio lighting — soft & even to match the flat PNG feel
   scene.add(new THREE.AmbientLight(0xffffff, 0.65));
   const key = new THREE.DirectionalLight(0xffffff, 0.75);
   key.position.set(55, 90, 140);
@@ -38,7 +55,6 @@ function init() {
   fill.position.set(-70, -20, 90);
   scene.add(fill);
 
-  // pose + rotation state — kept across model swaps (theme toggle)
   const group = new THREE.Group();
   scene.add(group);
   let holder = null;
@@ -46,7 +62,7 @@ function init() {
 
   function sizeCanvas() {
     const w = host.clientWidth || 300;
-    renderer.setSize(w, w);
+    renderer.setSize(w, w, false);
     render();
   }
   function render() { renderer.render(scene, camera); }
@@ -55,30 +71,33 @@ function init() {
   const modelFor = (light) => (light ? "N9-black" : "N9-white");
   let currentModel = null;
 
-  function loadModel(name) {
-    if (currentModel === name) return;
-    currentModel = name;
+  function loadModel(modelName) {
+    if (currentModel === modelName) return;
+    currentModel = modelName;
+    const q = "?v=" + ASSET_V;
+
     new MTLLoader()
       .setPath("assets/models/")
-      .load(name + ".mtl", (materials) => {
+      .load(modelName + ".mtl" + q, (materials) => {
         materials.preload();
-        // Rewrite each Rhino material to MeshStandardMaterial with its OWN Kd
-        // colour and NO specular tint — the default Ks=1,1,1 washes the red out.
-        Object.keys(materials.materials).forEach((name) => {
-          const src = materials.materials[name];
+        // Rebuild each Rhino material as MeshStandardMaterial with its own Kd,
+        // no white specular tint (Rhino writes Ks 1 1 1 which washes the red).
+        Object.keys(materials.materials).forEach((matName) => {
+          const src = materials.materials[matName];
           const std = new THREE.MeshStandardMaterial({
-            color: (src.color ? src.color.clone() : new THREE.Color(0xffffff)),
+            color: (src && src.color ? src.color.clone() : new THREE.Color(0xffffff)),
             metalness: 0.05,
             roughness: 0.55,
             side: THREE.DoubleSide,
           });
-          materials.materials[name] = std;
+          materials.materials[matName] = std;
         });
+
         new OBJLoader()
           .setMaterials(materials)
           .setPath("assets/models/")
-          .load(name + ".obj", (obj) => {
-            // stand the flat extrusion up to face the camera, centre + fit
+          .load(modelName + ".obj" + q, (obj) => {
+            // stand the flat extrusion up, centre it, and fit to a known size
             obj.rotation.x = Math.PI / 2;
             const wrap = new THREE.Group();
             wrap.add(obj);
@@ -89,7 +108,6 @@ function init() {
             const maxDim = Math.max(dims.x, dims.y, dims.z) || 1;
             wrap.scale.setScalar(62 / maxDim);
 
-            // swap in the new mesh, keep the current rotation
             if (holder) group.remove(holder);
             holder = wrap;
             group.add(holder);
@@ -100,8 +118,8 @@ function init() {
             }
             sizeCanvas();
             applySpin();
-          }, undefined, () => {});
-      }, undefined, () => {});
+          }, undefined, (err) => console.warn("[N9 3D] OBJ load failed:", err));
+      }, undefined, (err) => console.warn("[N9 3D] MTL load failed:", err));
   }
 
   loadModel(modelFor(isLight()));
@@ -176,5 +194,7 @@ function init() {
     resetRaf = window.requestAnimationFrame(step);
   };
 
+  // resize the canvas after the browser has fully laid out & after images load
   window.addEventListener("resize", sizeCanvas);
+  window.addEventListener("load", sizeCanvas);
 }
