@@ -12,7 +12,7 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
 
-const ASSET_V = "20260630-40";   // shared cache-buster with the html
+const ASSET_V = "20260630-41";   // shared cache-buster with the html
 
 function whenReady(cb) {
   if (document.readyState === "loading") {
