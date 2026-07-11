@@ -17,16 +17,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260630-39" />
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260630-40" />
 
   <!-- pick the theme before paint: saved choice wins, otherwise follow the device -->
   <script>try{var s=localStorage.getItem("n9-theme");var t=s||((window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches)?"light":"dark");if(t==="light")document.documentElement.setAttribute("data-theme","light");}catch(e){}</script>
 
-  <!-- start three.js + loaders downloading immediately so the 3D logo shows up on refresh -->
+  <!-- start three.js + loaders + the model downloading immediately so the 3D logo shows up on refresh -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <!-- polyfill import maps on older Safari/Firefox so the module script always runs -->
+  <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js" crossorigin="anonymous"></script>
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" crossorigin />
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/OBJLoader.js" crossorigin />
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/MTLLoader.js" crossorigin />
+  <link rel="preload" href="assets/models/N9-white.obj?v=20260630-40" as="fetch" crossorigin="anonymous" />
+  <link rel="preload" href="assets/models/N9-white.mtl?v=20260630-40" as="fetch" crossorigin="anonymous" />
+  <link rel="preload" href="assets/models/N9-black.obj?v=20260630-40" as="fetch" crossorigin="anonymous" />
+  <link rel="preload" href="assets/models/N9-black.mtl?v=20260630-40" as="fetch" crossorigin="anonymous" />
   <script type="importmap">
   {
     "imports": {
@@ -307,11 +313,11 @@
     <div class="lightbox__counter" id="lbCounter"></div>
   </div>
 
-  <script src="assets/js/projects.js?v=20260630-39"></script>
-  <script src="assets/js/main.js?v=20260630-39"></script>
+  <script src="assets/js/projects.js?v=20260630-40"></script>
+  <script src="assets/js/main.js?v=20260630-40"></script>
 
   <!-- real 3D hero logo (three.js renders the Rhino model as one solid piece)
        importmap + modulepreload live in <head> so this can start immediately -->
-  <script type="module" src="assets/js/logo3d.js?v=20260630-39"></script>
+  <script type="module" src="assets/js/logo3d.js?v=20260630-40"></script>
 </body>
 </html>

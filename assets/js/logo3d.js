@@ -12,7 +12,7 @@ import * as THREE from "three";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
 
-const ASSET_V = "20260630-38";   // shared cache-buster with the html
+const ASSET_V = "20260630-40";   // shared cache-buster with the html
 
 function whenReady(cb) {
   if (document.readyState === "loading") {
@@ -30,9 +30,11 @@ function webglSupported() {
 whenReady(() => {
   const host = document.getElementById("heroBigLogo");
   const bgBlobs = document.getElementById("bgBlobs");
-  if (!host || !webglSupported()) return;
+  if (!host) { console.warn("[N9 3D] hero host missing — fallback img stays"); return; }
+  if (!webglSupported()) { console.warn("[N9 3D] WebGL not supported — fallback img stays"); return; }
+  console.info("[N9 3D] init");
   try { init(host, bgBlobs); } catch (e) {
-    console.warn("[N9 3D] init failed:", e);
+    console.warn("[N9 3D] init failed — fallback img stays:", e);
   }
 });
 
@@ -115,11 +117,14 @@ function init(host, bgBlobs) {
             if (!renderer.domElement.parentNode) {
               host.appendChild(renderer.domElement);
               host.classList.add("has3d");
+              console.info("[N9 3D] " + modelName + " mounted");
+            } else {
+              console.info("[N9 3D] " + modelName + " swapped in");
             }
             sizeCanvas();
             applySpin();
-          }, undefined, (err) => console.warn("[N9 3D] OBJ load failed:", err));
-      }, undefined, (err) => console.warn("[N9 3D] MTL load failed:", err));
+          }, undefined, (err) => { currentModel = null; console.warn("[N9 3D] OBJ load failed:", err); });
+      }, undefined, (err) => { currentModel = null; console.warn("[N9 3D] MTL load failed:", err); });
   }
 
   loadModel(modelFor(isLight()));
